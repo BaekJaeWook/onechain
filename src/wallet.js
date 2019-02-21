@@ -40,5 +40,6 @@ function generatePrivateKey() {
 
 module.exports = {
     initWallet,
+    getPrivateFromWallet,
     getPublicFromWallet
 };

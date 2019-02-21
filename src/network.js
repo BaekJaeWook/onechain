@@ -2,13 +2,20 @@
 const WebSocket = require("ws");
 
 const bc = require("./blockchain");
+const tp = require("./transactionPool");
 
 const p2p_port = process.env.P2P_PORT || 6001;
 
 const MessageType = {
     QUERY_LATEST: 0,
     QUERY_ALL: 1,
-    RESPONSE_BLOCKCHAIN: 2
+    RESPONSE_BLOCKCHAIN: 2,
+
+    /**
+     * TODO
+     */
+    QUERY_TRANSACTION_POOL = 3,
+    RESPONSE_TRANSACTION_POOL = 4
 };
 
 var sockets = [];
@@ -25,7 +32,7 @@ function initConnection(ws) {
     sockets.push(ws);
     initMessageHandler(ws);
     initErrorHandler(ws);
-    write(ws, queryChainLengthMsg());
+    write(ws, queryLatestMsg());
 }
 
 function initMessageHandler(ws) {
@@ -38,10 +45,20 @@ function initMessageHandler(ws) {
                 write(ws, responseLatestMsg());
                 break;
             case MessageType.QUERY_ALL:
-                write(ws, responseChainMsg());
+                write(ws, responseAllMsg());
                 break;
             case MessageType.RESPONSE_BLOCKCHAIN:
                 handleBlockchainResponse(message);
+                break;
+
+            /**
+             * TODO
+             */
+            case QUERY_TRANSACTION_POOL:
+                write(ws, responseTransactionPoolMsg());
+                break;
+            case RESPONSE_TRANSACTION_POOL:
+                handleTransactionPoolResponse(message);
                 break;
         }
     });
@@ -99,6 +116,20 @@ function handleBlockchainResponse(message) {
     else { console.log("Received blockchain is not longer than current blockchain. Do nothing"); }
 }
 
+/**
+ * TODO
+ */
+function handleTransactionPoolResponse(message) {
+    
+}
+
+function queryLatestMsg() {
+    return ({
+        "type": MessageType.QUERY_LATEST,
+        "data": null
+    });
+}
+
 function queryAllMsg() {
     return ({
         "type": MessageType.QUERY_ALL,
@@ -106,24 +137,37 @@ function queryAllMsg() {
     });
 }
 
-function queryChainLengthMsg() {
+function responseLatestMsg() {
     return ({
-        "type": MessageType.QUERY_LATEST,
-        "data": null
+        "type": MessageType.RESPONSE_BLOCKCHAIN,
+        "data": JSON.stringify([bc.getLatestBlock()])
     });
 }
 
-function responseChainMsg() {
+function responseAllMsg() {
     return ({
         "type": MessageType.RESPONSE_BLOCKCHAIN,
         "data": JSON.stringify(bc.getBlockchain())
     });
 }
 
-function responseLatestMsg() {
+/**
+ * TODO
+ */
+function queryTransactionPoolMsg() {
     return ({
-        "type": MessageType.RESPONSE_BLOCKCHAIN,
-        "data": JSON.stringify([bc.getLatestBlock()])
+        "type": MessageType.QUERY_TRANSACTION_POOL,
+        "data": null
+    });
+}
+
+/**
+ * TODO
+ */
+function responseTransactionPoolMsg() {
+    return ({
+        "type": MessageType.RESPONSE_TRANSACTION_POOL,
+        "data": JSON.stringify(tp.getTransactionPool())
     });
 }
 

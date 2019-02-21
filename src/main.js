@@ -21,7 +21,7 @@ function initHttpServer() {
         const data = req.body.data || [];
         const newBlock = bc.generateNextBlock(data);
         if (newBlock === null) {
-            res.status(400).send('Bad Request');
+            res.status(400).send("Bad Request");
         }
         else {
             res.send(newBlock);

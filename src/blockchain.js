@@ -110,6 +110,14 @@ function findBlock(currentVersion, nextIndex, previoushash, nextTimestamp, merkl
     }
 }
 
+function addBlock(newBlock) {
+    if (isValidNewBlock(newBlock, getLatestBlock())) {
+        blockchain.push(newBlock);
+        return true;
+    }
+    return false;
+}
+
 function getCurrentTimestamp() {
     return Math.round(new Date().getTime() / 1000);
 }
@@ -149,6 +157,10 @@ function hashMatchesDifficulty(hash, difficulty) {
     return hashBinary.startsWith(requiredPrefix);
 }
 
+function calculateHash(version, index, previousHash, timestamp, merkleRoot, difficulty, nonce) {
+    return CryptoJS.SHA256(version + index + previousHash + timestamp + merkleRoot + difficulty + nonce).toString().toUpperCase();
+}
+
 function calculateHashForBlock(block) {
     return calculateHash(
         block.header.version,
@@ -159,18 +171,6 @@ function calculateHashForBlock(block) {
         block.header.difficulty,
         block.header.nonce
     );
-}
-
-function calculateHash(version, index, previousHash, timestamp, merkleRoot, difficulty, nonce) {
-    return CryptoJS.SHA256(version + index + previousHash + timestamp + merkleRoot + difficulty + nonce).toString().toUpperCase();
-}
-
-function addBlock(newBlock) {
-    if (isValidNewBlock(newBlock, getLatestBlock())) {
-        blockchain.push(newBlock);
-        return true;
-    }
-    return false;
 }
 
 function isValidBlockStructure(block) {
@@ -191,7 +191,7 @@ function isValidTimestamp(newBlock, previousBlock) {
 
 function isValidNewBlock(newBlock, previousBlock) {
     if (!isValidBlockStructure(newBlock)) {
-        console.log('invalid block structure: %s', JSON.stringify(newBlock));
+        console.log("Invalid block structure: %s", JSON.stringify(newBlock));
         return false;
     }
     else if (previousBlock.header.index + 1 !== newBlock.header.index) {
@@ -203,7 +203,7 @@ function isValidNewBlock(newBlock, previousBlock) {
         return false;
     }
     else if (!isValidTimestamp(newBlock, previousBlock)) {
-        console.log('invalid timestamp');
+        console.log("Invalid timestamp");
         return false;
     }
     else if (newBlock.data[0] !== "Coinbase") {
@@ -254,11 +254,11 @@ function getBlockVersion(index) {
 }
 
 module.exports = {
-    calculateHashForBlock,
-    generateNextBlock,
-    getLatestBlock,
     getBlockchain,
+    getLatestBlock,
+    generateNextBlock,
     addBlock,
+    calculateHashForBlock,
     replaceChain,
     getCurrentVersion,
     getBlockVersion
